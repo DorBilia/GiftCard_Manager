@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Date
-from sqlalchemy.sql import func
 from db.database import Base
 
 
@@ -9,7 +8,7 @@ class GiftCard(Base):
     name = Column(String, nullable=False)
     balance = Column(Integer, index=True, nullable=False)
     expr_date = Column(Date, index=True, nullable=False)
-    code = Column(String, nullable=False)
+    card_number = Column(String, nullable=False)
     details = Column(String)
 
 
