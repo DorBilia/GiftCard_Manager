@@ -10,5 +10,5 @@ class GiftCard(Base):
     expr_date = Column(Date, index=True, nullable=False)
     card_number = Column(String, nullable=False)
     details = Column(String)
-    is_Active = Column(Boolean, default=True)
+    isActive = Column(Boolean, default=True)
     removed_reason = Column(String)

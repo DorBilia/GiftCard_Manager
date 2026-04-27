@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Date, ForeignKey, Float
-from sqlalchemy.sql import func
+from datetime import date
 from db.database import Base
 
 
@@ -8,6 +8,6 @@ class Purchase(Base):
     id = Column(String, primary_key=True, index=True)
     card_id = Column(String, ForeignKey('gift_cards.id'), index=True)
     amount = Column(Float, nullable=False)
-    date = Column(Date, default=func.now(), nullable=False)
+    date = Column(Date, default=date.today(), nullable=False)
     details = Column(String, default=None)
     store = Column(String, default=None)
