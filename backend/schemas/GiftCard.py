@@ -1,16 +1,24 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 
 
 class GiftCardOverview(BaseModel):
     id: str
-    name: bool = True
+    name: str
     balance: float
     expr_date: date
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GiftCardResponse(BaseModel):
+    id: str
+    name: str
+    card_number: str
+    balance: float
+    expr_date: date
+    details: Optional[str] = None
 
 
 class CompleteGiftCard(GiftCardOverview):
@@ -18,4 +26,8 @@ class CompleteGiftCard(GiftCardOverview):
     details: Optional[str] = None
 
 
-
+class CreateGiftCardRequest(BaseModel):
+    name: str
+    card_number: str
+    balance: float
+    expr_date: date
