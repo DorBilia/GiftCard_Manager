@@ -7,7 +7,8 @@ from sqlalchemy import select
 
 from db.database import get_db
 from models.GiftCard import GiftCard
-from schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse
+from schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse, \
+    RemovedGiftCardOverview
 
 router = APIRouter(
     prefix="/gift_card",
@@ -15,10 +16,17 @@ router = APIRouter(
 )
 
 
-@router.get("/gift_cards", response_model=List[GiftCardOverview])
+@router.get("/active_gift_cards", response_model=List[GiftCardOverview])
 def get_all_gift_cards(db: Session = Depends(get_db)):
-    stmt = select(GiftCard)
+    stmt = select(GiftCard).where(GiftCard.isActive)
     res = db.scalars(stmt).all()  # get list of objects
+    return res
+
+
+@router.get("/historical_gift_cards", response_model=List[RemovedGiftCardOverview])
+def get_all_historical_gift_cards(db: Session = Depends(get_db)):
+    stmt = select(GiftCard).where(GiftCard.isActive == False)
+    res = db.scalars(stmt).all()
     return res
 
 
