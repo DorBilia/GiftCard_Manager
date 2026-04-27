@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, Boolean
 from db.database import Base
 
 
@@ -10,10 +10,5 @@ class GiftCard(Base):
     expr_date = Column(Date, index=True, nullable=False)
     card_number = Column(String, nullable=False)
     details = Column(String)
-
-
-class GiftCardHistory(Base):
-    __tablename__ = "gift_card_history"
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    details = Column(String, nullable=False)
+    is_Active = Column(Boolean, default=True)
+    removed_reason = Column(String)
