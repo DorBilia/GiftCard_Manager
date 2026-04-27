@@ -1,0 +1,49 @@
+import uuid
+
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+
+from db.database import get_db
+from models.GiftCard import GiftCard
+from schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse
+
+router = APIRouter(
+    prefix="/gift_card",
+    tags=["GiftCard"]
+)
+
+
+@router.get("/gift_cards", response_model=List[GiftCardOverview])
+def get_all_gift_cards(db: Session = Depends(get_db)):
+    stmt = select(GiftCard)
+    res = db.scalars(stmt).all()  # get list of objects
+    return res
+
+
+@router.post("/create", response_model=GiftCardResponse)
+def create_gift_card(request: CreateGiftCardRequest, db: Session = Depends(get_db)):
+    card_id = str(uuid.uuid4())
+    card = GiftCard(id=card_id,
+                    name=request.name,
+                    card_number=request.card_number,
+                    balance=request.balance,
+                    expr_date=request.expr_date)
+    try:
+        db.add(card)
+        db.commit()
+        return card
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/gift_cards/{card_id}", response_model=CompleteGiftCard)
+def get_gift_card(card_id: str, db: Session = Depends(get_db)):
+    stmt = select(GiftCard).where(GiftCard.id == card_id)
+    card = db.scalars(stmt).first()
+    if card is None:
+        raise HTTPException(status_code=404, detail="Card Not Found")
+    else:
+        return card
