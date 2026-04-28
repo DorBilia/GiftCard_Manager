@@ -1,17 +1,32 @@
 from fastapi import FastAPI
+from core.lifespan import lifespan
+from fastapi.middleware.cors import CORSMiddleware
+from core.settings import settings
+from routers import GiftCard, Purchase
+from db.database import create_tables
 
-app = FastAPI()
+create_tables()
 
+app = FastAPI(
+    title="GiftCard Manger API",
+    description="api to manage GiftCards",
+    version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan
+)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+app.include_router(Purchase.router, prefix=settings.API_PREFIX)
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
-
+app.include_router(GiftCard.router, prefix=settings.API_PREFIX)
 
 if __name__ == "__main__":
     import uvicorn
