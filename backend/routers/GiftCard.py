@@ -55,3 +55,19 @@ def get_gift_card(card_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Card Not Found")
     else:
         return card
+
+
+@router.put("/gift_cards/{card_id}", response_model=CompleteGiftCard)
+def update_gift_card(request: CompleteGiftCard, db: Session = Depends(get_db)):
+    try:
+        old_card = db.get(GiftCard, request.id)
+        update_data = request.model_dump()  # turn the request into a dict
+
+        for key, value in update_data.items():
+            setattr(old_card, key, value)
+
+        db.commit()
+        return old_card
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
