@@ -71,3 +71,17 @@ def update_gift_card(request: CompleteGiftCard, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/gift_cards/{card_id}", response_model=CompleteGiftCard)
+def delete_gift_card(card_id: str, db: Session = Depends(get_db)):
+    try:
+        card = db.query(GiftCard).filter_by(id=card_id).first()
+
+        db.delete(card)
+        db.commit()
+
+        return card
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
