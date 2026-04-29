@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { GiftCardGrid } from '@/components/gift-card-grid'
 import { GiftCardDetailModalV2 as GiftCardDetailModal } from '@/components/gift-card-detail-modal'
 import { AddCardModal } from '@/components/add-card-modal'
+import { EditCardModal } from '@/components/edit-card-modal'
+import { DeleteCardDialog } from '@/components/delete-card-dialog'
 import type { GiftCard } from '@/lib/gift-card-data'
 import { fetchActiveCards, fetchHistoricalCards } from '@/lib/api-client'
 import { convertBackendOverviewToGiftCard, convertBackendRemovedToGiftCard } from '@/lib/gift-card-data'
@@ -15,6 +17,10 @@ export default function GiftCardManagement() {
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
+  const [cardToEdit, setCardToEdit] = useState<GiftCard | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [cardToDelete, setCardToDelete] = useState<GiftCard | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const [activeCards, setActiveCards] = useState<GiftCard[]>([])
   const [historyCards, setHistoryCards] = useState<GiftCard[]>([])
@@ -80,6 +86,48 @@ export default function GiftCardManagement() {
     }
   }
 
+  const handleCardEdit = (card: GiftCard) => {
+    setCardToEdit(card)
+    setIsEditModalOpen(true)
+  }
+
+  const handleCardDelete = (card: GiftCard) => {
+    setCardToDelete(card)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleCardUpdated = async () => {
+    // Refresh active cards after update
+    setLoadingActive(true)
+    try {
+      const data = await fetchActiveCards()
+      setActiveCards(data.map(convertBackendOverviewToGiftCard))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingActive(false)
+    }
+  }
+
+  const handleCardDeleted = async () => {
+    // Refresh both active and history cards after delete
+    setLoadingActive(true)
+    setLoadingHistory(true)
+    try {
+      const [activeData, historyData] = await Promise.all([
+        fetchActiveCards(),
+        fetchHistoricalCards(),
+      ])
+      setActiveCards(activeData.map(convertBackendOverviewToGiftCard))
+      setHistoryCards(historyData.map(convertBackendRemovedToGiftCard))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingActive(false)
+      setLoadingHistory(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -136,6 +184,8 @@ export default function GiftCardManagement() {
             <GiftCardGrid 
               cards={activeCards} 
               onCardClick={handleCardClick}
+              onCardEdit={handleCardEdit}
+              onCardDelete={handleCardDelete}
               variant="active"
               emptyMessage="No active gift cards"
             />
@@ -170,6 +220,22 @@ export default function GiftCardManagement() {
         open={isAddCardModalOpen}
         onOpenChange={setIsAddCardModalOpen}
         onCardAdded={handleCardAdded}
+      />
+
+      {/* Edit Card Modal */}
+      <EditCardModal
+        card={cardToEdit}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        onCardUpdated={handleCardUpdated}
+      />
+
+      {/* Delete Card Dialog */}
+      <DeleteCardDialog
+        card={cardToDelete}
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onCardDeleted={handleCardDeleted}
       />
     </div>
   )

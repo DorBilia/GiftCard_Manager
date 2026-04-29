@@ -1,16 +1,19 @@
 'use client'
 
-import { CreditCard, Calendar, AlertCircle } from 'lucide-react'
+import { CreditCard, Calendar, AlertCircle, Pencil, Trash2 } from 'lucide-react'
 import type { GiftCard } from '@/lib/gift-card-data'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface GiftCardItemProps {
   card: GiftCard
   onClick: () => void
+  onEdit?: (e: React.MouseEvent) => void
+  onDelete?: (e: React.MouseEvent) => void
   variant?: 'active' | 'history'
 }
 
-export function GiftCardItem({ card, onClick, variant = 'active' }: GiftCardItemProps) {
+export function GiftCardItem({ card, onClick, onEdit, onDelete, variant = 'active' }: GiftCardItemProps) {
   const isExpiringSoon = () => {
     const expDate = new Date(card.expirationDate)
     const now = new Date()
@@ -45,14 +48,40 @@ export function GiftCardItem({ card, onClick, variant = 'active' }: GiftCardItem
   }
 
   return (
-    <button
+    <div
       onClick={onClick}
       className={cn(
-        'group relative w-full rounded-xl border border-border bg-card p-6 text-left transition-all duration-200',
+        'group relative w-full rounded-xl border border-border bg-card p-6 text-left transition-all duration-200 cursor-pointer',
         'hover:border-primary/50 hover:bg-card/80 hover:shadow-lg hover:shadow-primary/5',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
       )}
     >
+      {/* Edit Button - Top Right */}
+      {variant === 'active' && onEdit && (
+        <Button
+          onClick={onEdit}
+          size="icon"
+          variant="ghost"
+          className="absolute right-12 bottom-4 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+          title="Edit card"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
+
+      {/* Delete Button - Bottom Right */}
+      {variant === 'active' && onDelete && (
+        <Button
+          onClick={onDelete}
+          size="icon"
+          variant="ghost"
+          className="absolute bottom-4 right-4 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          title="Delete card"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+
       {/* Card Header */}
       <div className="mb-4 flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -61,12 +90,6 @@ export function GiftCardItem({ card, onClick, variant = 'active' }: GiftCardItem
           </div>
           <h3 className="text-xl font-semibold text-card-foreground">{card.name}</h3>
         </div>
-        {variant === 'active' && isExpiringSoon() && (
-          <div className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
-            <AlertCircle className="h-3 w-3" />
-            Expiring Soon
-          </div>
-        )}
       </div>
 
       {/* Card Content */}
@@ -86,9 +109,17 @@ export function GiftCardItem({ card, onClick, variant = 'active' }: GiftCardItem
           </div>
 
           {/* Expiration Date */}
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span className="text-sm">Expires {formatDate(card.expirationDate)}</span>
+          <div className="flex items-center justify-between gap-2 text-muted-foreground pr-12">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="text-sm">Expires {formatDate(card.expirationDate)}</span>
+            </div>
+            {variant === 'active' && isExpiringSoon() && (
+              <div className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
+                <AlertCircle className="h-3 w-3" />
+                Expiring Soon
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -110,6 +141,6 @@ export function GiftCardItem({ card, onClick, variant = 'active' }: GiftCardItem
 
       {/* Hover indicator */}
       <div className="absolute inset-x-0 bottom-0 h-1 rounded-b-xl bg-primary opacity-0 transition-opacity group-hover:opacity-100" />
-    </button>
+    </div>
   )
 }

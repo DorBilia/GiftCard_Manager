@@ -90,3 +90,24 @@ export async function createGiftCard(payload: {
     body: JSON.stringify(payload),
   })
 }
+
+export async function updateGiftCard(cardId: string, payload: {
+  id: string
+  name: string
+  card_number: string
+  balance: number
+  expr_date: string
+  details?: string | null
+}): Promise<BackendCompleteGiftCard> {
+  return request<BackendCompleteGiftCard>(`/api/gift_card/gift_cards/${encodeURIComponent(cardId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteGiftCard(cardId: string): Promise<BackendCompleteGiftCard> {
+  return request<BackendCompleteGiftCard>(`/api/gift_card/gift_cards/${encodeURIComponent(cardId)}`, {
+    method: 'DELETE',
+  })
+}
