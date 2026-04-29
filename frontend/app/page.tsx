@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { CreditCard, History, Wallet } from 'lucide-react'
+import { CreditCard, History, Wallet, Plus } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { GiftCardGrid } from '@/components/gift-card-grid'
 import { GiftCardDetailModalV2 as GiftCardDetailModal } from '@/components/gift-card-detail-modal'
+import { AddCardModal } from '@/components/add-card-modal'
 import type { GiftCard } from '@/lib/gift-card-data'
 import { fetchActiveCards, fetchHistoricalCards } from '@/lib/api-client'
 import { convertBackendOverviewToGiftCard, convertBackendRemovedToGiftCard } from '@/lib/gift-card-data'
@@ -12,6 +14,7 @@ import { convertBackendOverviewToGiftCard, convertBackendRemovedToGiftCard } fro
 export default function GiftCardManagement() {
   const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
 
   const [activeCards, setActiveCards] = useState<GiftCard[]>([])
   const [historyCards, setHistoryCards] = useState<GiftCard[]>([])
@@ -64,6 +67,19 @@ export default function GiftCardManagement() {
     setIsModalOpen(true)
   }
 
+  const handleCardAdded = async () => {
+    // Refresh active cards
+    setLoadingActive(true)
+    try {
+      const data = await fetchActiveCards()
+      setActiveCards(data.map(convertBackendOverviewToGiftCard))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingActive(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -79,8 +95,13 @@ export default function GiftCardManagement() {
                 <p className="text-sm text-muted-foreground">Manage your gift card collection</p>
               </div>
             </div>
-            
-
+            <Button
+              onClick={() => setIsAddCardModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Card
+            </Button>
           </div>
         </div>
       </header>
@@ -142,6 +163,13 @@ export default function GiftCardManagement() {
         card={selectedCard}
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
+      />
+
+      {/* Add Card Modal */}
+      <AddCardModal
+        open={isAddCardModalOpen}
+        onOpenChange={setIsAddCardModalOpen}
+        onCardAdded={handleCardAdded}
       />
     </div>
   )
