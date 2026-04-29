@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CreditCard, Calendar, Hash, FileText, History, ArrowLeft } from 'lucide-react'
+import { CreditCard, Calendar, Hash, FileText, History, ArrowLeft, Plus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import type { GiftCard } from '@/lib/gift-card-data'
 import { fetchCardDetail, fetchPurchaseHistory } from '@/lib/api-client'
 import { convertBackendCompleteToGiftCard } from '@/lib/gift-card-data'
+import { AddPurchaseModal } from '@/components/add-purchase-modal'
 
 interface GiftCardDetailModalProps {
   card: GiftCard | null
@@ -25,6 +26,7 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
   const [detailedCard, setDetailedCard] = useState<GiftCard | null>(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [detailsError, setDetailsError] = useState<string | null>(null)
+  const [isAddPurchaseModalOpen, setIsAddPurchaseModalOpen] = useState(false)
   useEffect(() => {
     let mounted = true
     if (!open || !card) {
@@ -78,6 +80,21 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
       setShowHistory(false)
     }
     onOpenChange(newOpen)
+  }
+
+  const handlePurchaseAdded = async () => {
+    // Refresh card details and purchase history
+    if (!card) return
+    try {
+      const [detail, history] = await Promise.all([
+        fetchCardDetail(card.id),
+        fetchPurchaseHistory(card.id),
+      ])
+      const mapped = convertBackendCompleteToGiftCard(detail, history.purchases)
+      setDetailedCard(mapped)
+    } catch (e) {
+      console.error('Failed to refresh card details:', e)
+    }
   }
 
   const displayCard = detailedCard ?? card
@@ -195,23 +212,44 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
               <Separator className="bg-border" />
 
               {/* Actions */}
-              <Button
-                onClick={() => setShowHistory(true)}
-                className="w-full"
-                variant="outline"
-              >
-                <History className="mr-2 h-4 w-4" />
-                View Purchase History
-                {displayCard.purchaseHistory.length > 0 && (
-                  <span className="ml-2 rounded-full bg-primary/20 px-2 py-0.5 text-xs">
-                    {displayCard.purchaseHistory.length}
-                  </span>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setShowHistory(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <History className="mr-2 h-4 w-4" />
+                  View Purchase History
+                  {displayCard.purchaseHistory.length > 0 && (
+                    <span className="ml-2 rounded-full bg-primary/20 px-2 py-0.5 text-xs">
+                      {displayCard.purchaseHistory.length}
+                    </span>
+                  )}
+                </Button>
+                {displayCard.isActive && (
+                  <Button
+                    onClick={() => setIsAddPurchaseModalOpen(true)}
+                    className="w-full"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Purchase
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
           </>
         )}
       </DialogContent>
+
+      {/* Add Purchase Modal */}
+      {card && (
+        <AddPurchaseModal
+          cardId={card.id}
+          open={isAddPurchaseModalOpen}
+          onOpenChange={setIsAddPurchaseModalOpen}
+          onPurchaseAdded={handlePurchaseAdded}
+        />
+      )}
     </Dialog>
   )
 }
