@@ -56,40 +56,28 @@ export function GiftCardItem({ card, onClick, onEdit, onDelete, variant = 'activ
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
       )}
     >
-      {/* Edit Button - Top Right */}
-      {variant === 'active' && onEdit && (
-        <Button
-          onClick={onEdit}
-          size="icon"
-          variant="ghost"
-          className="absolute right-12 bottom-4 h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-          title="Edit card"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      )}
-
-      {/* Delete Button - Bottom Right */}
-      {variant === 'active' && onDelete && (
-        <Button
-          onClick={onDelete}
-          size="icon"
-          variant="ghost"
-          className="absolute bottom-4 right-4 h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          title="Delete card"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
-
       {/* Card Header */}
-      <div className="mb-4 flex items-start justify-between">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
             <CreditCard className="h-6 w-6 text-primary" />
           </div>
           <h3 className="text-xl font-semibold text-card-foreground">{card.name}</h3>
         </div>
+        {variant === 'active' && onEdit && (
+          <Button
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit(e)
+            }}
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            title="Edit card"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Card Content */}
@@ -109,17 +97,33 @@ export function GiftCardItem({ card, onClick, onEdit, onDelete, variant = 'activ
           </div>
 
           {/* Expiration Date */}
-          <div className="flex items-center justify-between gap-2 text-muted-foreground pr-12">
+          <div className="flex items-center justify-between gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="text-sm">Expires {formatDate(card.expirationDate)}</span>
             </div>
-            {variant === 'active' && isExpiringSoon() && (
-              <div className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
-                <AlertCircle className="h-3 w-3" />
-                Expiring Soon
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {variant === 'active' && isExpiringSoon() && (
+                <div className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
+                  <AlertCircle className="h-3 w-3" />
+                  Expiring Soon
+                </div>
+              )}
+              {variant === 'active' && onDelete && (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(e)
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  title="Delete card"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </>
       ) : (
