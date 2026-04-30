@@ -7,6 +7,8 @@ import type { GiftCard } from '@/lib/gift-card-data'
 interface GiftCardGridProps {
   cards: GiftCard[]
   onCardClick: (card: GiftCard) => void
+  onCardEdit?: (card: GiftCard) => void
+  onCardDelete?: (card: GiftCard) => void
   variant?: 'active' | 'history'
   emptyMessage?: string
 }
@@ -14,6 +16,8 @@ interface GiftCardGridProps {
 export function GiftCardGrid({ 
   cards, 
   onCardClick, 
+  onCardEdit,
+  onCardDelete,
   variant = 'active',
   emptyMessage = 'No cards found'
 }: GiftCardGridProps) {
@@ -35,6 +39,14 @@ export function GiftCardGrid({
           key={card.id}
           card={card}
           onClick={() => onCardClick(card)}
+          onEdit={(e) => {
+            e.stopPropagation()
+            onCardEdit?.(card)
+          }}
+          onDelete={(e) => {
+            e.stopPropagation()
+            onCardDelete?.(card)
+          }}
           variant={variant}
         />
       ))}
