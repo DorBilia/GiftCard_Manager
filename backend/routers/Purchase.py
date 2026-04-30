@@ -6,8 +6,8 @@ from sqlalchemy import select
 
 from db.database import get_db
 from models.Purchase import Purchase
-from schemas.Purchase import GiftCardPurchasesResponse, PurchaseRequest, PurchaseResponse, PurchaseSchema
-from core.CardManager import update_card_balance
+from schemas.Purchase import GiftCardPurchasesResponse, PurchaseRequest, PurchaseResponse
+from core.CardManager import update_card_balance, update_card_upon_purchase_deletion
 
 router = APIRouter(
     prefix="/purchase",
@@ -60,7 +60,7 @@ def delete_purchase(purchase_id: str, db: Session = Depends(get_db)):
         if not purchase:
             raise HTTPException(status_code=404, detail="Purchase not found")
 
-        update_card_balance(purchase.card_id, purchase, True)
+        update_card_upon_purchase_deletion(purchase, db)
 
         db.delete(purchase)
 

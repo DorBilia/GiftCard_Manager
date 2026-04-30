@@ -1,7 +1,7 @@
 import uuid
 
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -74,6 +74,7 @@ def delete_gift_card(card_id: str, db: Session = Depends(get_db)):
         card = db.query(GiftCard).filter_by(id=card_id).first()
 
         db.delete(card)
+
         db.commit()
 
         return card

@@ -22,8 +22,7 @@ def archive_expired_cards():
         db.close()
 
 
-def update_card_balance(card_id: str, purchase: Purchase, deletedPurchase: bool = False):
-    # Deleted purchase: whether a purchase is being deleted, in that case the card needs to be compensated
+def update_card_balance(card_id: str, purchase: Purchase):
     db = SessionLocal()
     try:
         card = db.get(GiftCard, card_id)
@@ -34,23 +33,13 @@ def update_card_balance(card_id: str, purchase: Purchase, deletedPurchase: bool 
         if card.balance < amount:
             return -2
 
-        if amount <= 0 and not deletedPurchase:
-            return -3
-
-        if deletedPurchase:
-            card.balance += amount
-            if not card.isActive and card.balance > 0:  # The purchase was deleted on a historical card
-                card.isActive = False
-                card.removed_reason = None
-        else:
-            card.balance -= amount
+        card.balance -= amount
 
         if card.balance == 0:
             for key, value in removedData["empty"].items():
                 setattr(card, key, value)
 
-        if not deletedPurchase:
-            db.add(purchase)
+        db.add(purchase)
 
         db.commit()
 
@@ -72,3 +61,15 @@ def update_object(old_obj: object, update_request: object, db: Session):
         setattr(old_obj, key, value)
     db.commit()
     return old_obj
+
+
+def update_card_upon_purchase_deletion(purchase: Purchase, db: Session):
+    card = db.get(GiftCard, purchase.card_id)
+    card.balance += purchase.amount
+
+    if card.removed_reason == removedData["empty"][
+        "removed_reason"]:  # Bring back empty cards from history if they are full again
+        card.isActive = True
+        card.removed_reason = None
+
+    db.commit()
