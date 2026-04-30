@@ -10,7 +10,7 @@ create_tables()
 app = FastAPI(
     title="GiftCard Manger API",
     description="api to manage GiftCards",
-    version="0.2.0",
+    version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
