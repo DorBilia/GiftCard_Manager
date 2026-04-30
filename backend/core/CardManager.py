@@ -39,6 +39,9 @@ def update_card_balance(card_id: str, purchase: Purchase, deletedPurchase: bool 
 
         if deletedPurchase:
             card.balance += amount
+            if not card.isActive and card.balance > 0:  # The purchase was deleted on a historical card
+                card.isActive = False
+                card.removed_reason = None
         else:
             card.balance -= amount
 
