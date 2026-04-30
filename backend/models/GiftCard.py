@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean
+from sqlalchemy.orm import relationship
+
 from db.database import Base
 
 
@@ -12,3 +14,4 @@ class GiftCard(Base):
     details = Column(String)
     isActive = Column(Boolean, default=True)
     removed_reason = Column(String)
+    children = relationship("Purchase", cascade="all, delete")  # delete purchases when this card is deleted
