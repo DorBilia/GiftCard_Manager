@@ -1,5 +1,4 @@
 import uuid
-from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
@@ -7,7 +6,7 @@ from sqlalchemy import select
 
 from db.database import get_db
 from models.Purchase import Purchase
-from schemas.Purchase import GiftCardPurchasesResponse, PurchaseRequest, PurchaseResponse
+from schemas.Purchase import GiftCardPurchasesResponse, PurchaseRequest, PurchaseResponse, PurchaseSchema
 from core.CardManager import update_card_balance
 
 router = APIRouter(
@@ -34,15 +33,41 @@ def create_purchase(request: PurchaseRequest):
         details=request.details,
         store=request.store
     )
-    update_result = update_card_balance(request.card_id, purchase, request.amount)
+    update_result = update_card_balance(request.card_id, purchase)
 
-    if update_result == -1:
-        raise HTTPException(status_code=404, detail="Card Not Found")
-
-    if update_result == -2:
-        raise HTTPException(status_code=400, detail="Insufficient funds")
+    match update_result:
+        case -1:
+            raise HTTPException(status_code=404, detail="Card Not Found")
+        case -2:
+            raise HTTPException(status_code=400, detail="Insufficient funds")
+        case -3:
+            raise HTTPException(status_code=400, detail="Amount must be greater then 0")
+        case _:
+            pass
 
     if isinstance(update_result, Exception):
         raise HTTPException(status_code=500, detail=str(update_result))
 
     return update_result
+
+
+@router.delete("/{purchase_id}", response_model=PurchaseResponse)
+def delete_purchase(purchase_id: str, db: Session = Depends(get_db)):
+    try:
+
+        purchase = db.get(Purchase, purchase_id)
+
+        if not purchase:
+            raise HTTPException(status_code=404, detail="Purchase not found")
+
+        update_card_balance(purchase.card_id, purchase, True)
+
+        db.delete(purchase)
+
+        db.commit()
+
+        return purchase
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

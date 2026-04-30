@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
+from core.CardManager import update_object
 from db.database import get_db
 from models.GiftCard import GiftCard
 from schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse, \
@@ -61,13 +62,7 @@ def get_gift_card(card_id: str, db: Session = Depends(get_db)):
 def update_gift_card(request: CompleteGiftCard, db: Session = Depends(get_db)):
     try:
         old_card = db.get(GiftCard, request.id)
-        update_data = request.model_dump()  # turn the request into a dict
-
-        for key, value in update_data.items():
-            setattr(old_card, key, value)
-
-        db.commit()
-        return old_card
+        return update_object(old_card, request, db)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

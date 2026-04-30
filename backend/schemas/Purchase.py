@@ -13,15 +13,8 @@ class PurchaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class PurchaseResponse(BaseModel):
-    id: str
+class PurchaseResponse(PurchaseSchema):
     card_id: str
-    amount: float
-    date: date
-    details: Optional[str] = None
-    store: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class GiftCardPurchasesResponse(BaseModel):
