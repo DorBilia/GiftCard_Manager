@@ -77,6 +77,12 @@ export async function createPurchase(cardId: string, payload: {
   })
 }
 
+export async function deletePurchase(purchaseId: string): Promise<BackendPurchase> {
+  return request<BackendPurchase>(`/api/purchase/${encodeURIComponent(purchaseId)}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function createGiftCard(payload: {
   name: string
   card_number: string

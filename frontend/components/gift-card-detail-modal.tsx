@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CreditCard, Calendar, Hash, FileText, History, ArrowLeft, Plus } from 'lucide-react'
+import { CreditCard, Calendar, Hash, FileText, History, ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,17 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import type { GiftCard } from '@/lib/gift-card-data'
-import { fetchCardDetail, fetchPurchaseHistory } from '@/lib/api-client'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import type { BackendPurchase, GiftCard } from '@/lib/gift-card-data'
+import { fetchCardDetail, fetchPurchaseHistory, deletePurchase } from '@/lib/api-client'
 import { convertBackendCompleteToGiftCard } from '@/lib/gift-card-data'
 import { AddPurchaseModal } from '@/components/add-purchase-modal'
 
@@ -27,6 +36,10 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [detailsError, setDetailsError] = useState<string | null>(null)
   const [isAddPurchaseModalOpen, setIsAddPurchaseModalOpen] = useState(false)
+  const [selectedPurchaseToDelete, setSelectedPurchaseToDelete] = useState<BackendPurchase | null>(null)
+  const [purchaseDeleteLoading, setPurchaseDeleteLoading] = useState(false)
+  const [purchaseDeleteError, setPurchaseDeleteError] = useState<string | null>(null)
+
   useEffect(() => {
     let mounted = true
     if (!open || !card) {
@@ -97,6 +110,23 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
     }
   }
 
+  const handlePurchaseDelete = async () => {
+    if (!selectedPurchaseToDelete || !card) return
+
+    setPurchaseDeleteLoading(true)
+    setPurchaseDeleteError(null)
+
+    try {
+      await deletePurchase(selectedPurchaseToDelete.id)
+      setSelectedPurchaseToDelete(null)
+      await handlePurchaseAdded()
+    } catch (e) {
+      setPurchaseDeleteError(e instanceof Error ? e.message : 'Failed to delete purchase')
+    } finally {
+      setPurchaseDeleteLoading(false)
+    }
+  }
+
   const displayCard = detailedCard ?? card
 
   return (
@@ -138,9 +168,23 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
                         -{formatCurrency(purchase.amount)}
                       </p>
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {formatDate(purchase.date)}
-                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(purchase.date)}
+                      </p>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedPurchaseToDelete(purchase)
+                        }}
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        title="Delete purchase"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -250,6 +294,42 @@ export function GiftCardDetailModalV2({ card, open, onOpenChange }: GiftCardDeta
           onPurchaseAdded={handlePurchaseAdded}
         />
       )}
+
+      <AlertDialog
+        open={Boolean(selectedPurchaseToDelete)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedPurchaseToDelete(null)
+            setPurchaseDeleteError(null)
+          }
+        }}
+      >
+        <AlertDialogContent className="border-border bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Purchase?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete this purchase? This action cannot be undone.
+            </AlertDialogDescription>
+            {purchaseDeleteError && (
+              <div className="mt-3 rounded-lg border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+                {purchaseDeleteError}
+              </div>
+            )}
+          </AlertDialogHeader>
+          <div className="flex gap-3">
+            <AlertDialogCancel disabled={purchaseDeleteLoading}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handlePurchaseDelete}
+              disabled={purchaseDeleteLoading}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {purchaseDeleteLoading ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }
