@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from core.CardManager import update_object
+from Commands.GiftCard import update_object
 from db.database import get_db
-from models.GiftCard import GiftCard
-from schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse, \
+from db.models.GiftCard import GiftCard
+from API.schemas.GiftCard import GiftCardOverview, CompleteGiftCard, CreateGiftCardRequest, GiftCardResponse, \
     RemovedGiftCardOverview
 
 router = APIRouter(

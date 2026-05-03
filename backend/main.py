@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from core.lifespan import lifespan
+from API.lifespan import lifespan
 from fastapi.middleware.cors import CORSMiddleware
-from core.settings import settings
-from routers import GiftCard, Purchase
+from settings import settings
+from API.routers import GiftCard, Purchase
 from db.database import create_tables
 
 create_tables()

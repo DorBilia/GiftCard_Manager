@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 
-from core.CardManager import archive_expired_cards
+from Commands.GiftCard import archive_expired_cards
 
 
 @asynccontextmanager

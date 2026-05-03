@@ -2,10 +2,10 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from db.database import SessionLocal
-from models.GiftCard import GiftCard
-from models.Purchase import Purchase
+from db.models.GiftCard import GiftCard
+from db.models.Purchase import Purchase
 from datetime import date
-from core.settings import removedData
+from settings import removedData
 
 
 def archive_expired_cards():
